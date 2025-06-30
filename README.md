@@ -9,6 +9,7 @@ A minimal bare metal example for the STM32MP135 Cortex-A7 processor using **pure
 - **Minimal & Clean** - Simplified linker script with only essential sections
 - **Cross-Platform** - Build and flash on Windows, Linux, or macOS
 - **VSCode Integration** - Full IntelliSense and debugging support
+- **Hardware Debugging** - ST-Link V2 debugging via SWD with breakpoints and stepping
 - **Safe Flashing** - Multiple methods with safety checks
 
 ## Overview
@@ -20,6 +21,7 @@ This project demonstrates:
 - Minimal runtime without bloat (no preinit_array, no exception handling)
 - Hardware register access using C++ templates
 - Static constructors support for global objects
+- **Full debugging with GDB and VSCode**
 
 ## Prerequisites
 
@@ -27,6 +29,7 @@ This project demonstrates:
 - STM32MP135F-DK Discovery Kit (or compatible board)
 - Micro SD card
 - Micro USB cable for power
+- ST-Link V2 debugger (optional, for debugging)
 
 ### Software (All Platforms)
 
@@ -42,6 +45,10 @@ This project demonstrates:
 
 3. **VSCode** ([Download](https://code.visualstudio.com/))
 
+4. **Debugging Tools** (optional)
+   - OpenOCD ([Download](https://github.com/openocd-org/openocd/releases))
+   - Cortex-Debug VSCode extension (auto-installed)
+
 ## Quick Start
 
 ```bash
@@ -52,17 +59,27 @@ code .
 
 # Build in VSCode: Ctrl/Cmd+Shift+B
 # Flash in VSCode: Ctrl/Cmd+Shift+P → "Flash to SD Card"
+# Debug in VSCode: F5 (with ST-Link connected)
 ```
 
 ## Project Structure
 
 ```
-├── boot.cpp        # Pure C++ boot code with vector table
-├── startup.cpp     # C++ runtime initialization
-├── main.cpp        # Application code with C++17 examples
-├── linker.ld       # Minimal linker script
-├── CMakeLists.txt  # Modern CMake configuration
-└── scripts/        # Cross-platform flashing tools
+├── boot.cpp            # Pure C++ boot code with vector table
+├── startup.cpp         # C++ runtime initialization
+├── main.cpp            # Application code with C++17 examples
+├── linker.ld           # Minimal linker script
+├── CMakeLists.txt      # Modern CMake configuration
+├── .vscode/
+│   ├── launch.json     # Debug configurations
+│   ├── tasks.json      # Build and flash tasks
+│   └── settings.json   # Project settings
+├── openocd/            # OpenOCD configs for debugging
+│   ├── stlink-v2.cfg   # ST-Link V2 interface
+│   └── stm32mp13x.cfg  # STM32MP13x target
+├── scripts/            # Cross-platform flashing tools
+└── docs/
+    └── debugging.md    # Detailed debugging guide
 ```
 
 ## Pure C++ Implementation
@@ -122,14 +139,6 @@ void process_data(uint32_t data) {
 }
 ```
 
-## Simplified Linker Script
-
-The linker script has been optimized for modern toolchains:
-- ✅ Only essential sections (`.text`, `.data`, `.bss`, `.init_array`)
-- ❌ No `.preinit_array` or `.fini_array` (not needed)
-- ❌ No exception handling sections
-- ❌ No RTTI sections
-
 ## Building
 
 ### VSCode (Recommended)
@@ -167,6 +176,24 @@ sudo dd if=build/stm32mp135-bare-metal.stm32 of=/dev/sdX bs=512 seek=34
 # Windows (as Administrator)
 dd if=build\stm32mp135-bare-metal.stm32 of=\\.\PhysicalDriveN bs=512 seek=34
 ```
+
+## 🔧 Hardware Debugging
+
+### Quick Setup
+
+1. **Connect ST-Link V2 to SWD header** (CN11 on STM32MP135F-DK)
+2. **Set boot switches** for Engineering Mode (BOOT0=0, BOOT2=0)
+3. **Press F5 in VSCode** to start debugging
+
+### Debug Features
+- **Breakpoints** - Click in the gutter or use `break main`
+- **Step Through Code** - F10 (over), F11 (into)
+- **Variable Watch** - Hover or add to watch window
+- **Memory View** - Inspect any memory address
+- **Register View** - See CPU and peripheral registers
+- **Call Stack** - Full backtrace support
+
+See [docs/debugging.md](docs/debugging.md) for detailed debugging instructions.
 
 ## Memory Layout
 
@@ -209,6 +236,14 @@ public:
 };
 ```
 
+## Simplified Linker Script
+
+The linker script has been optimized for modern toolchains:
+- ✅ Only essential sections (`.text`, `.data`, `.bss`, `.init_array`)
+- ❌ No `.preinit_array` or `.fini_array` (not needed)
+- ❌ No exception handling sections
+- ❌ No RTTI sections
+
 ## C++ Runtime Features
 
 ### Supported ✅
@@ -241,6 +276,8 @@ public:
 | Vector table not at 0x00 | Check `.vectors` section is first in linker script |
 | Static constructors not called | Ensure `.init_array` is kept in linker script |
 | Code too large | Enable `-Os` optimization or LTO |
+| Can't connect debugger | Check SWD connections and OpenOCD installation |
+| Breakpoint not hit | Ensure debug build (`-O0 -g3`) |
 
 ## Why Pure C++?
 
@@ -257,6 +294,7 @@ Ideas for contributions:
 - Implement interrupt handling with C++ lambdas
 - Create constexpr peripheral definitions
 - Add compile-time pin configuration
+- Improve debugging experience
 
 ## License
 
