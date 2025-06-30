@@ -1,0 +1,24 @@
+# Git attributes file
+
+# Ensure shell scripts always have LF line endings and are executable
+*.sh text eol=lf
+scripts/flash.sh text eol=lf
+
+# Ensure Windows scripts have CRLF line endings
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+# Ensure source files have consistent line endings
+*.c text
+*.cpp text
+*.h text
+*.hpp text
+*.S text
+*.s text
+*.ld text
+
+# Binary files
+*.stm32 binary
+*.elf binary
+*.bin binary
+*.o binary
