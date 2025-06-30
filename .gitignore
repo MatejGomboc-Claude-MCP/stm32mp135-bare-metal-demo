@@ -1,0 +1,11 @@
+# Build outputs
+*.o
+*.elf
+*.stm32
+*.bin
+*.map
+
+# Editor files
+.vscode/
+*.swp
+*~
