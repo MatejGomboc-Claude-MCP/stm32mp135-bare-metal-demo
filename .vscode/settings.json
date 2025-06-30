@@ -1,0 +1,13 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.generator": "Ninja",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "files.associations": {
+        "*.S": "arm",
+        "*.ld": "c",
+        "cstdint": "cpp"
+    },
+    "cortex-debug.openocdPath": "openocd",
+    "cortex-debug.armToolchainPath": ""
+}

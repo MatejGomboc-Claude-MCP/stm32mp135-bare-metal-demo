@@ -1,9 +1,13 @@
 @
-@ boot.S - Minimal STM32MP135 Cortex-A7 startup code
+@ boot.S - STM32MP135 Cortex-A7 startup code
 @ 
-@ This code is loaded by the ROM bootloader and simply
-@ initializes the processor and enters an infinite NOP loop.
+@ This code is loaded by the ROM bootloader and provides
+@ the initial entry point and exception vectors.
 @
+
+.syntax unified
+.cpu cortex-a7
+.fpu neon-vfpv4
 
 .section .vectors, "ax"
 .global _start
@@ -21,11 +25,30 @@ _start:
     b .               @ 0x1C: FIQ interrupt
 
 .section .text
+.global reset_handler
+.global infinite_loop
+
 @ Reset handler - this is where execution begins
 reset_handler:
-    @ The processor is now in SVC mode (Supervisor)
-    @ No stack setup needed for this simple demo
+    @ Set stack pointer for SVC mode
+    ldr sp, =__stack_top
     
+    @ TODO: Initialize other stacks (IRQ, FIQ, etc.) when needed
+    
+    @ Call C++ startup code
+    bl __startup
+    
+    @ Should never get here, but just in case
+    b infinite_loop
+
+@ Infinite loop function (can be called from C++)
 infinite_loop:
-    nop               @ No operation
-    b infinite_loop   @ Branch back to the NOP
+    nop
+    b infinite_loop
+
+@ Stack reservation (defined by linker script)
+.section .stack, "aw", %nobits
+.align 3
+__stack_start:
+    .space 0x1000  @ 4KB stack
+__stack_top:
