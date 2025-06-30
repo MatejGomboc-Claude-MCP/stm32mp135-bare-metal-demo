@@ -6,13 +6,22 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [
-                "STM32MP135"
+                "STM32MP135",
+                "__ARM_ARCH_7A__",
+                "__ARM_ARCH_ISA_ARM",
+                "__ARM_ARCH_ISA_THUMB=2"
             ],
-            "compilerPath": "arm-none-eabi-gcc",
+            "compilerPath": "arm-none-eabi-g++",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-arm",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "compilerArgs": [
+                "-mcpu=cortex-a7",
+                "-mfpu=neon-vfpv4",
+                "-mfloat-abi=hard",
+                "-mthumb"
+            ]
         }
     ],
     "version": 4
