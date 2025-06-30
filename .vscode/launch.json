@@ -1,0 +1,59 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug STM32MP135",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/stm32mp135-bare-metal.elf",
+            "device": "STM32MP135",
+            "runToEntryPoint": "reset_handler",
+            "svdFile": "${workspaceFolder}/STM32MP135.svd",  // Optional: download from ST
+            
+            // OpenOCD configuration
+            "configFiles": [
+                "${workspaceFolder}/openocd/stlink-v2.cfg",
+                "${workspaceFolder}/openocd/stm32mp13x.cfg"
+            ],
+            
+            // GDB configuration
+            "gdbPath": "arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw",
+            
+            // Pre-launch task
+            "preLaunchTask": "Build",
+            
+            // Override default commands
+            "overrideGDBCommands": [
+                "monitor reset halt",
+                "monitor adapter speed 4000"
+            ],
+            
+            // Breakpoints
+            "breakAfterReset": true,
+            "postResetCommands": [
+                "break main",
+                "continue"
+            ]
+        },
+        {
+            "name": "Attach to STM32MP135",
+            "type": "cortex-debug",
+            "request": "attach",
+            "servertype": "openocd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/stm32mp135-bare-metal.elf",
+            "device": "STM32MP135",
+            
+            "configFiles": [
+                "${workspaceFolder}/openocd/stlink-v2.cfg",
+                "${workspaceFolder}/openocd/stm32mp13x.cfg"
+            ],
+            
+            "gdbPath": "arm-none-eabi-gdb",
+            "showDevDebugOutput": "raw"
+        }
+    ]
+}

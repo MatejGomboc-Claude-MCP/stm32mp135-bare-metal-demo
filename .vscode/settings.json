@@ -6,8 +6,24 @@
     "files.associations": {
         "*.S": "arm",
         "*.ld": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "array": "cpp",
+        "algorithm": "cpp"
     },
+    
+    // Cortex-Debug Extension Settings
     "cortex-debug.openocdPath": "openocd",
-    "cortex-debug.armToolchainPath": ""
+    "cortex-debug.armToolchainPath": "",
+    "cortex-debug.gdbPath": "arm-none-eabi-gdb",
+    
+    // GDB Server Settings
+    "cortex-debug.gdbServerConsolePort": 55878,
+    "cortex-debug.enableTelnet": false,
+    
+    // Debug Console Settings  
+    "debug.console.fontSize": 12,
+    "debug.console.wordWrap": false,
+    
+    // Terminal settings for debug output
+    "terminal.integrated.scrollback": 5000
 }
