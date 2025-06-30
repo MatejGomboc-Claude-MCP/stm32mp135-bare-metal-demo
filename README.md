@@ -1,6 +1,6 @@
 # STM32MP135 Bare Metal Demo
 
-A minimal bare metal example for the STM32MP135 Cortex-A7 processor using modern C++17, CMake, and VSCode. This demo boots the processor, runs some C++ code, and then enters an infinite loop.
+A minimal bare metal example for the STM32MP135 Cortex-A7 processor using modern C++17, CMake, and VSCode. This demo boots the processor, runs some C++ code, and then enters an infinite loop. **Works on Windows, Linux, and macOS!**
 
 ## Overview
 
@@ -11,6 +11,7 @@ This project demonstrates:
 - Using modern C++17 in a bare metal environment
 - CMake cross-compilation for ARM
 - VSCode integration for embedded development
+- **Cross-platform development and flashing**
 
 ## Prerequisites
 
@@ -19,29 +20,53 @@ This project demonstrates:
 - Micro SD card (any size)
 - Micro USB cable for power
 
-### Software (Windows 11)
-- **ARM GNU Toolchain**: [Download here](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
-  - Choose "arm-none-eabi" Windows hosted version
-  - Add to PATH after installation
-- **CMake**: [Download here](https://cmake.org/download/)
-  - Version 3.20 or later
-  - Add to PATH during installation
-- **Ninja Build**: [Download here](https://ninja-build.org/)
-  - Extract and add to PATH
-- **VSCode**: [Download here](https://code.visualstudio.com/)
-  - The project includes recommended extensions
-- **STM32CubeProgrammer**: [Download from ST](https://www.st.com/en/development-tools/stm32cubeprog.html)
+### Software (All Platforms)
+
+#### 1. ARM GNU Toolchain
+- **Download**: [ARM Developer](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+- Choose the appropriate version for your OS:
+  - **Windows**: `arm-gnu-toolchain-*-mingw-w64-i686-arm-none-eabi.exe`
+  - **Linux**: `arm-gnu-toolchain-*-x86_64-arm-none-eabi.tar.xz`
+  - **macOS**: `arm-gnu-toolchain-*-darwin-x86_64-arm-none-eabi.pkg`
+- Add to PATH after installation
+
+#### 2. Build Tools
+- **CMake**: [Download](https://cmake.org/download/) (3.20+)
+- **Ninja**: [Download](https://ninja-build.org/)
+- **Python 3**: [Download](https://www.python.org/) (for flash tool)
+
+#### 3. VSCode
+- [Download VSCode](https://code.visualstudio.com/)
+- The project includes recommended extensions
+
+#### 4. Platform-Specific Tools
+
+**Windows:**
+- Option A: [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html)
+- Option B: Python with pywin32: `pip install pywin32`
+
+**Linux:**
+- `dd` command (pre-installed)
+- Python 3 (usually pre-installed)
+
+**macOS:**
+- `dd` command (pre-installed)
+- Python 3: `brew install python3`
 
 ## Project Structure
 
 ```
 ├── .vscode/              # VSCode configuration
 │   ├── settings.json     # Project settings
-│   ├── tasks.json        # Build tasks
+│   ├── tasks.json        # Build & flash tasks
 │   ├── c_cpp_properties.json  # IntelliSense config
 │   └── extensions.json   # Recommended extensions
 ├── cmake/
 │   └── arm-none-eabi-toolchain.cmake  # CMake toolchain file
+├── scripts/              # Platform-specific flash scripts
+│   ├── flash.sh          # Linux/macOS flash script
+│   ├── flash.ps1         # Windows PowerShell script
+│   └── stm32flash.py     # Cross-platform Python tool
 ├── boot.S                # ARM assembly startup code
 ├── main.cpp              # C++ entry point
 ├── startup.cpp           # C++ runtime initialization
@@ -52,47 +77,133 @@ This project demonstrates:
 
 ## Building with VSCode
 
-1. **Open the project in VSCode**
-   ```cmd
-   code .
-   ```
+### 1. Clone and Open
+```bash
+git clone https://github.com/MatejGomboc-Claude-MCP/stm32mp135-bare-metal-demo.git
+cd stm32mp135-bare-metal-demo
+code .
+```
 
-2. **Install recommended extensions** when prompted
+### 2. Install Extensions
+When VSCode opens, it will prompt you to install recommended extensions. Accept to install:
+- C/C++ (Microsoft)
+- CMake Tools
+- Cortex-Debug (for future debugging)
 
-3. **Configure CMake** (happens automatically on open, or press `Ctrl+Shift+P` → "CMake: Configure")
+### 3. Configure and Build
+- **Configure**: Happens automatically, or press `Ctrl/Cmd+Shift+P` → "CMake: Configure"
+- **Build**: Press `Ctrl/Cmd+Shift+B` or click the Build button in the status bar
 
-4. **Build the project** (press `Ctrl+Shift+B` or click the Build button in the status bar)
-
-The output files will be in the `build` directory:
+Output files in `build/`:
 - `stm32mp135-bare-metal.elf` - ELF file with debug symbols
 - `stm32mp135-bare-metal.stm32` - Binary file for flashing
 - `stm32mp135-bare-metal.map` - Linker map file
 
+## Flashing to SD Card
+
+### Method 1: VSCode Tasks (Recommended)
+
+After building, use the Command Palette (`Ctrl/Cmd+Shift+P`) and run:
+- **"Tasks: Run Task"** → **"Flash to SD Card"**
+
+This will run the appropriate platform-specific script.
+
+### Method 2: Cross-Platform Python Tool
+
+```bash
+# Install dependencies (first time only)
+pip install -r requirements-flash.txt
+
+# Run the flash tool
+python scripts/stm32flash.py build/stm32mp135-bare-metal.stm32
+```
+
+The tool will:
+1. Auto-detect removable drives
+2. Verify the STM32 header
+3. Flash at the correct offset (0x4400)
+
+### Method 3: Platform-Specific Manual Methods
+
+<details>
+<summary><b>Windows Manual Method</b></summary>
+
+**Using STM32CubeProgrammer:**
+1. Launch STM32CubeProgrammer
+2. Select "SD card" programming method
+3. Choose your SD card (be careful!)
+4. Set address to `0x4400`
+5. Select `build\stm32mp135-bare-metal.stm32`
+6. Click "Download"
+
+**Using PowerShell (as Administrator):**
+```powershell
+# Run the provided script
+powershell -ExecutionPolicy Bypass -File scripts\flash.ps1
+```
+</details>
+
+<details>
+<summary><b>Linux Manual Method</b></summary>
+
+```bash
+# Find your SD card device
+lsblk
+
+# Flash (replace /dev/sdX with your device)
+sudo dd if=build/stm32mp135-bare-metal.stm32 of=/dev/sdX bs=512 seek=34 conv=fsync status=progress
+```
+</details>
+
+<details>
+<summary><b>macOS Manual Method</b></summary>
+
+```bash
+# Find your SD card device
+diskutil list
+
+# Unmount (replace diskN with your device)
+diskutil unmountDisk /dev/diskN
+
+# Flash
+sudo dd if=build/stm32mp135-bare-metal.stm32 of=/dev/diskN bs=512 seek=34
+```
+</details>
+
+## Running
+
+1. Set boot switches on STM32MP135F-DK for SD card boot:
+   - BOOT0 = 0
+   - BOOT2 = 1
+2. Insert SD card into the board
+3. Connect micro USB for power
+4. Power on - the processor is now running your code!
+
 ## Building from Command Line
 
-```cmd
-# Create build directory
+If you prefer command line over VSCode:
+
+```bash
+# All platforms
 mkdir build
 cd build
-
-# Configure CMake
 cmake -G Ninja ..
-
-# Build
 ninja
 
-# Output files are now in the build directory
+# Or on Linux/macOS with Make
+cmake ..
+make
 ```
 
 ## How It Works
 
-1. **ROM Bootloader**: The STM32MP1 has a built-in ROM bootloader that runs first
-2. **Boot Source**: ROM checks boot pins and reads from SD card sector 34
-3. **STM32 Header**: ROM validates our header (magic number, entry point, size)
-4. **Load & Jump**: ROM loads our code to SYSRAM (0x2FFC0000) and jumps to it
-5. **Assembly Init**: `boot.S` sets up the stack and calls C++ startup
-6. **C++ Runtime**: `startup.cpp` initializes BSS and calls main()
-7. **Main Function**: `main.cpp` demonstrates C++ code, then enters infinite loop
+1. **ROM Bootloader**: Built-in bootloader reads sector 34 of SD card
+2. **STM32 Header**: Validates magic number and entry point
+3. **Code Loading**: Loads our binary to SYSRAM (0x2FFC0000)
+4. **Execution Flow**:
+   - `boot.S`: Sets up stack, calls C++ startup
+   - `startup.cpp`: Initializes BSS, calls main()
+   - `main.cpp`: Runs C++ code, enters infinite loop
 
 ## C++ Features
 
@@ -106,69 +217,43 @@ This bare metal environment supports:
 - ❌ RTTI (disabled for size)
 - ❌ Dynamic memory allocation (no heap)
 
-## Flashing to SD Card
-
-### Method 1: STM32CubeProgrammer (Recommended)
-
-1. Launch STM32CubeProgrammer
-2. Insert SD card into your PC
-3. Click "Open file" and select `build/stm32mp135-bare-metal.stm32`
-4. Select "SD card" programming method
-5. Choose your SD card from the list (be careful!)
-6. Set address to `0x4400` (this is sector 34)
-7. Click "Download"
-
-### Method 2: Command Line (dd for Windows)
-
-1. Download dd for Windows
-2. Find your SD card number in Disk Management
-3. Run as Administrator:
-   ```cmd
-   dd if=build\stm32mp135-bare-metal.stm32 of=\\.\PhysicalDriveN bs=512 seek=34
-   ```
-   Replace N with your SD card number
-
-## Running
-
-1. Set boot switches on STM32MP135F-DK for SD card boot:
-   - BOOT0 = 0
-   - BOOT2 = 1
-2. Insert SD card into the board
-3. Connect micro USB for power
-4. Power on - the processor is now running your code!
-
-## Debugging with VSCode
-
-The project is ready for debugging with OpenOCD and ST-LINK:
-
-1. Connect ST-LINK debugger to the board
-2. Install Cortex-Debug extension (included in recommendations)
-3. Configure OpenOCD for STM32MP1
-4. Press F5 to start debugging
-
 ## Extending the Project
 
-Now that C++ is working, you can:
+Example next steps:
 
-1. **Add peripheral drivers** - Create C++ classes for UART, GPIO, etc.
-2. **Implement interrupt handling** - Set up GIC and add IRQ handlers
-3. **Enable caches and MMU** - Add MMU configuration for better performance
-4. **Add more C++ features** - Static constructors, simple containers, etc.
-5. **Initialize DDR** - Set up external RAM for more memory
-6. **Build an RTOS** - Implement a scheduler and tasks
-
-Example next step - adding UART output:
+### 1. Add UART Output
 ```cpp
 class UART {
-    Register<uint32_t> dr;   // Data register
-    Register<uint32_t> sr;   // Status register
+    Register<uint32_t> dr{0x40011000};  // Data register
+    Register<uint32_t> sr{0x40011004};  // Status register
 public:
     void putc(char c) {
-        while (!(sr.read() & TX_READY)) {}
+        while (!(sr.read() & (1 << 7))) {}  // Wait for TX ready
         dr.write(c);
+    }
+    
+    void puts(const char* str) {
+        while (*str) putc(*str++);
     }
 };
 ```
+
+### 2. Enable Caches
+```cpp
+// In main.cpp
+asm volatile(
+    "mrc p15, 0, r0, c1, c0, 0\n"  // Read SCTLR
+    "orr r0, r0, #(1 << 12)\n"      // Enable I-cache
+    "orr r0, r0, #(1 << 2)\n"       // Enable D-cache
+    "mcr p15, 0, r0, c1, c0, 0\n"  // Write SCTLR
+    ::: "r0"
+);
+```
+
+### 3. Set Up Interrupts
+- Configure GIC (Generic Interrupt Controller)
+- Set up exception handlers
+- Enable IRQ/FIQ in CPSR
 
 ## Technical Details
 
@@ -183,23 +268,27 @@ Offset  Size  Description
 ```
 
 ### Memory Map
-- `0x2FFC0000`: SYSRAM (256KB) - Where our code runs
-- `0xC0000000`: DDR3 RAM (not used in this demo)
-
-### C++ ABI Support
-The project includes minimal C++ runtime:
-- BSS initialization
-- Placement new operators
-- Pure virtual handlers
-- Stack unwinding stubs
+- `0x2FFC0000`: SYSRAM (256KB) - Code and data
+- `0xC0000000`: DDR3 RAM (not used yet)
 
 ## Troubleshooting
 
-- **CMake errors**: Ensure CMake 3.20+ and Ninja are in PATH
-- **Compiler not found**: Check ARM toolchain is in PATH
-- **IntelliSense errors**: Let CMake configure complete first
-- **Board doesn't boot**: Check boot switch settings
-- **Build too large**: Enable optimization or remove unused code
+| Problem | Solution |
+|---------|----------|
+| CMake can't find compiler | Ensure ARM toolchain is in PATH |
+| Build fails on Windows | Check if ninja.exe is in PATH |
+| SD card not detected | Try different card or USB adapter |
+| Board doesn't boot | Verify boot switches (BOOT0=0, BOOT2=1) |
+| Permission denied (Linux/macOS) | Use `sudo` for flashing |
+| Flash script fails | Try the Python tool instead |
+
+## Contributing
+
+Feel free to submit issues and pull requests! Some ideas:
+- Add OpenOCD debugging configuration
+- Create a minimal HAL for peripherals
+- Add FreeRTOS support
+- Implement a simple bootloader
 
 ## License
 
