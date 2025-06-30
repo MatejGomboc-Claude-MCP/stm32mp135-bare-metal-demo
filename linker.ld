@@ -1,9 +1,7 @@
 /*
- * linker.ld - Linker script for STM32MP135 bare metal demo
+ * linker.ld - Simplified linker script for STM32MP135 bare metal
  *
- * The STM32MP1 ROM bootloader will load our code into SYSRAM
- * at address 0x2FFC0000. We use this internal RAM to avoid
- * needing to initialize external DDR.
+ * Optimized for C++17 with modern toolchain
  */
 
 MEMORY
@@ -12,63 +10,66 @@ MEMORY
     SYSRAM (rwx) : ORIGIN = 0x2FFC0000, LENGTH = 256K
 }
 
-/* Entry point */
-ENTRY(_start)
-
-/* Stack size */
-__stack_size = 0x1000;  /* 4KB */
+/* Entry point is the reset handler */
+ENTRY(reset_handler)
 
 SECTIONS
 {
     /* Start at SYSRAM base address */
-    . = 0x2FFC0000;
+    . = ORIGIN(SYSRAM);
     
     /* STM32 header required by ROM bootloader */
     .header : {
-        LONG(0x00000001);           /* Magic number: STM32 header v1 */
-        LONG(_start);               /* Entry point address */
-        LONG(0x00000000);           /* Reserved */
-        LONG(__image_end - _start); /* Image length in bytes */
-        . = 0x100;                  /* Header must be 256 bytes */
+        LONG(0x00000001);                    /* Magic number: STM32 header v1 */
+        LONG(ABSOLUTE(reset_handler));       /* Entry point address */
+        LONG(0x00000000);                    /* Reserved */
+        LONG(__image_end - ORIGIN(SYSRAM)); /* Image length in bytes */
+        . = 0x100;                           /* Header must be 256 bytes */
     } > SYSRAM
     
-    /* Code sections */
+    /* Code and read-only data */
     .text : {
-        *(.vectors)                 /* Exception vectors first */
-        *(.text .text.*)           /* Code */
-        *(.rodata .rodata.*)       /* Read-only data */
+        KEEP(*(.vectors))                    /* Exception vectors must be first */
+        *(.text.reset_handler)               /* Reset handler */
+        *(.text .text.*)                     /* Code */
+        *(.rodata .rodata.*)                 /* Read-only data */
         . = ALIGN(4);
     } > SYSRAM
     
-    /* Initialized data (not used in SYSRAM-only design) */
+    /* C++ initialization array */
+    .init_array : {
+        __init_array_start = .;
+        KEEP(*(SORT(.init_array.*)))         /* Sorted init array */
+        KEEP(*(.init_array))                 /* Init array */
+        __init_array_end = .;
+        . = ALIGN(4);
+    } > SYSRAM
+    
+    /* Initialized data (in SYSRAM, no need to copy) */
     .data : {
-        __data_start = .;
         *(.data .data.*)
         . = ALIGN(4);
-        __data_end = .;
     } > SYSRAM
-    __data_load = LOADADDR(.data);
     
     /* Uninitialized data */
     .bss : {
         __bss_start = .;
         *(.bss .bss.*)
         *(COMMON)
-        . = ALIGN(4);
-        __bss_end = .;
-    } > SYSRAM
-    
-    /* Stack */
-    .stack : {
         . = ALIGN(8);
-        __stack_start = .;
-        . += __stack_size;
-        __stack_top = .;
+        __bss_end = .;
     } > SYSRAM
     
     /* End of image marker for header */
     __image_end = .;
     
-    /* Debug sections */
-    .ARM.attributes 0 : { *(.ARM.attributes) }
+    /* Discard unneeded sections */
+    /DISCARD/ : {
+        *(.ARM.exidx*)        /* ARM exception index - not needed */
+        *(.ARM.extab*)        /* ARM exception table - not needed */
+        *(.preinit_array)     /* Not needed for bare metal */
+        *(.fini_array)        /* Destructors - not needed */
+        *(.eh_frame)          /* Exception handling frame - not needed */
+        *(.comment)           /* Comments */
+    }
 }
