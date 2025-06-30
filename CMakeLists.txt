@@ -46,8 +46,42 @@ add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
     COMMENT "Size information:"
 )
 
+# Platform-specific flash instructions
+if(WIN32)
+    set(FLASH_INSTRUCTION "Use 'Tasks: Run Task' → 'Flash to SD Card' in VSCode, or run scripts/flash.ps1 as Administrator")
+elseif(APPLE)
+    set(FLASH_INSTRUCTION "Use 'Tasks: Run Task' → 'Flash to SD Card' in VSCode, or run scripts/flash.sh")
+elseif(UNIX)
+    set(FLASH_INSTRUCTION "Use 'Tasks: Run Task' → 'Flash to SD Card' in VSCode, or run scripts/flash.sh")
+    # Make script executable on Linux
+    execute_process(COMMAND chmod +x ${CMAKE_SOURCE_DIR}/scripts/flash.sh)
+endif()
+
+# Print flash instructions after build
+add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo "Build complete! Binary file: ${PROJECT_NAME}.stm32"
+    COMMAND ${CMAKE_COMMAND} -E echo "To flash: ${FLASH_INSTRUCTION}"
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+)
+
 # Clean target
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES
     "${PROJECT_NAME}.map"
     "${PROJECT_NAME}.stm32"
 )
+
+# Create a custom target for flashing (can be called with: cmake --build . --target flash)
+if(WIN32)
+    add_custom_target(flash
+        COMMAND powershell -ExecutionPolicy Bypass -File ${CMAKE_SOURCE_DIR}/scripts/flash.ps1
+        DEPENDS ${PROJECT_NAME}.elf
+        COMMENT "Flashing to SD card..."
+    )
+else()
+    add_custom_target(flash
+        COMMAND ${CMAKE_SOURCE_DIR}/scripts/flash.sh
+        DEPENDS ${PROJECT_NAME}.elf
+        COMMENT "Flashing to SD card..."
+    )
+endif()
