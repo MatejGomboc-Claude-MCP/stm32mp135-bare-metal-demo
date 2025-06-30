@@ -1,19 +1,51 @@
 # ARM none EABI Toolchain file for CMake
+# Works on Windows, Linux, and macOS
+
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ARM)
 
-# Set toolchain paths
+# Set toolchain prefix
 set(TOOLCHAIN_PREFIX arm-none-eabi-)
 
+# Find toolchain executable suffix (.exe on Windows)
+if(WIN32)
+    set(TOOLCHAIN_SUFFIX ".exe")
+else()
+    set(TOOLCHAIN_SUFFIX "")
+endif()
+
 # Find the toolchain programs
-find_program(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc)
-find_program(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++)
-find_program(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc)
-find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}ar)
-find_program(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy)
-find_program(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump)
-find_program(CMAKE_SIZE ${TOOLCHAIN_PREFIX}size)
-find_program(CMAKE_DEBUGGER ${TOOLCHAIN_PREFIX}gdb)
+find_program(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}gcc${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}ar${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_OBJDUMP ${TOOLCHAIN_PREFIX}objdump${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_SIZE ${TOOLCHAIN_PREFIX}size${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+    REQUIRED
+)
+find_program(CMAKE_DEBUGGER ${TOOLCHAIN_PREFIX}gdb${TOOLCHAIN_SUFFIX}
+    HINTS $ENV{ARM_TOOLCHAIN_PATH}/bin
+)
 
 # Set compiler flags
 set(CMAKE_C_FLAGS_INIT "")

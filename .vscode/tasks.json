@@ -19,12 +19,44 @@
             "problemMatcher": []
         },
         {
+            "label": "Configure",
+            "type": "cmake",
+            "command": "configure",
+            "problemMatcher": []
+        },
+        {
             "label": "Flash to SD Card",
             "type": "shell",
-            "command": "echo",
+            "command": "${workspaceFolder}/scripts/flash.${env:PATHEXT}",
+            "windows": {
+                "command": "powershell",
+                "args": [
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    "${workspaceFolder}/scripts/flash.ps1"
+                ]
+            },
+            "linux": {
+                "command": "${workspaceFolder}/scripts/flash.sh"
+            },
+            "osx": {
+                "command": "${workspaceFolder}/scripts/flash.sh"
+            },
+            "problemMatcher": [],
+            "dependsOn": "Build"
+        },
+        {
+            "label": "Flash with Python Tool",
+            "type": "shell",
+            "command": "python3",
             "args": [
-                "Please use STM32CubeProgrammer to flash build/stm32mp135-bare-metal.stm32 to SD card at offset 0x4400"
+                "${workspaceFolder}/scripts/stm32flash.py",
+                "${workspaceFolder}/build/stm32mp135-bare-metal.stm32"
             ],
+            "windows": {
+                "command": "python"
+            },
             "problemMatcher": [],
             "dependsOn": "Build"
         }

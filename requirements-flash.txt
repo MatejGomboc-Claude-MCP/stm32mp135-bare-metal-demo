@@ -1,0 +1,8 @@
+# Python requirements for the cross-platform flash tool
+# Install with: pip install -r requirements-flash.txt
+
+# Windows-specific requirements
+pywin32; sys_platform == 'win32'
+
+# macOS-specific requirements
+pyobjc-framework-DiskArbitration; sys_platform == 'darwin'
